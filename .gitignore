@@ -1,0 +1,15 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+/data
+/Reports
+NorwegianPtarmigan_TrendANalysis.Rproj
+/ModelOutput
+/RunningModels
+/Models
+/data
+/Resultater_publish.rmd
+/Figures
+/Resultater_publish.docx

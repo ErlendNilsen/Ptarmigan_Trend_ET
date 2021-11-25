@@ -1,0 +1,433 @@
+---
+title: "Resultater 2009 - 2021"
+author: "Erlend B. Nilsen"
+date: "5 9 2021"
+output: word_document
+
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Resultater
+
+I dette notatet er det gitt en helt kort oppsummering av resultatene i 2009 - 2021. Rapportering og modeller er identisk med det som ble gjort i NINA-rapport 1869 (Nilsen og Rød-Eriksen 2020). Det er kun modell **M_random** som er benyttet her. I appendix 1 har jeg sammenliknet regionale trender estimert med en modell for hele landet (region som random term) og egne modeller for hver enkelt region. Det henvises til NINA-rapport 1869 for ytterligere detaljer og beskrivelse av modellene mm.  
+
+## 1 Trender i størrelsen på hekkebestanden
+
+```{r message=FALSE, echo=FALSE, warning=FALSE}
+
+
+library(jagsUI)
+library(ggplot2)
+library(tidyverse)
+library(cowplot)
+library(flextable)
+library(ggfan)
+
+
+##########################################################################
+##### PLOTTING TRENDS IN ADULT (BREEDING BIRD) POPULATION - COMPLETE PERIOD
+
+load("ModelOutput_noTrend_Adults_2009_2021.RData")
+
+
+#########################################################################
+#### Plotting mean density (Dt)
+
+
+dd <- as_tibble(out_new$sims.list$Mean_D) %>%
+  gather(Time, Density, V1:V13) %>%
+  mutate(Year=as.integer(str_remove(Time, "V"))+2008) %>%
+  mutate(Year2=as.factor(Year))
+
+dd_mean <- dd %>% group_by(Year2) %>%
+          summarise(D=mean(Density)) %>%
+    mutate(År=as.numeric(as.character(Year2))) %>%
+          ungroup()
+
+
+####
+
+p1 <- ggplot(data=dd, aes(x=Year2, y=Density)) + 
+      #see::geom_violinhalf(fill='#E69F00', color="darkred") +
+      geom_violin(fill='#E69F00', color="darkred") +
+      geom_line(data=dd_mean, aes(x=Year2, y=D, group=1), col="Dark orange", lwd=1.5) + 
+      stat_summary(fun.data=mean_sdl, geom="pointrange", color="grey") +
+          scale_fill_brewer(palette="RdBu") + 
+          theme_minimal() +
+          ylim(0, 10) +
+          xlab("År") +
+          ylab("Tetthet (voksne ryper pr. km2)") +
+        theme(text = element_text(size=10), 
+              axis.title.x = element_text(vjust=-1)) 
+
+##############################################################################
+#### PLOTTING INDEX (I) - TERMED SD IN JAGS OUTPUT
+
+dd <- as_tibble(out_new$sims.list$SD) %>%
+  gather(Time, Density, V1:V13) %>%
+  mutate(Year=as.integer(str_remove(Time, "V"))+2008) %>%
+  mutate(Year2=as.factor(Year))
+
+dd_mean <- dd %>% group_by(Year2) %>%
+  summarise(I=mean(Density)) %>%
+    mutate(År=as.numeric(as.character(Year2))) %>%
+  ungroup()
+
+m1 <- lm(log(dd_mean$I)~seq(0,12))
+
+
+####
+
+p2 <- ggplot(dd, aes(x=Year,y=Density)) + 
+  geom_hline(yintercept=1, linetype="dashed", 
+             color = "darkred", size=1) +
+  geom_fan(intervals=c(25:95)/100, alpha=0.1) + 
+  geom_interval(intervals=c(0, 0.95), size=1.5, col="grey") + 
+  theme_minimal() + 
+  scale_linetype_manual(values=c("solid", "dotted")) +
+  scale_fill_gradient(low="darkorange", high="grey") +
+  theme(text=element_text(size=10)) +
+  ylab("Bestandsindeks - hekkebestand (It)") +
+  geom_point(data=dd_mean, aes(x=År, y=I), col="darkred", size=1.5) +
+  xlab("År") + 
+  #ylim(0, 3) +
+  theme(legend.position ="none", panel.grid.minor =   element_blank()) + guides(fill="none", line="none")+
+  scale_x_continuous(breaks=seq(2009,2021, 1))
+
+
+```
+
+Analysene av trenden i hekkebestanden tar utgangspunkt i at denne kan beregnes i form av tettheten av voksen fugl observert under takseringene om høsten. Denne antakelsen er diskutert i diskusjonskapitlet. Basert på modellen **M_random** ser vi at den gjennomsnittlige estimerte tetthet av voksenfugl ($\widehat{D}_{t}$) har økt i perioden fra 2009-2021 (**Figur 1 a; Tabell 1**). Denne økningen har imidlertid vært mest tydelig i årene fra 2017 og framover. Samme bilde ser vi også når det gjelder relativ bestandsindeks $I_{t}$, og siden 2017 har indeksen vært signifikant høyere enn indeksåret 2009 (**Figur 1 b; Tabell 1**). 
+
+Dersom man trekker en trendlinje gjennom den årlige bestandsindeksen $I_{t}$ for hekkefugl i perioden får man en vekstrate tilsvarende `r round(coef(m1)[2],2)` eller en årlig økning på `r (round(exp(coef(m1)[2]),2)-1)*100`% (estimert basert på **M_random**).
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.height=6, fig.width=6}
+
+ plot_grid(
+  p1, 
+  p2,
+  ncol=1,
+  labels="AUTO", 
+  label_size = 15,
+  align="v",
+  hjust=-4.5
+  
+)
+
+
+```
+
+**Figur 1.** Modellert bestandsendring i størrelsen på hekkebestanden av lirype i Norge i perioden 2009-2021, basert på data samlet inn via linjetakseringsprogrammet. Panel A) viser gjennomsnittlig tetthet av voksenfugl ($\widehat{D}_{t}$) for alle takseringslinjer, mens panel B) viser bestandsindeksen ($I_{t}$). Grå vertikale linjer i panel A) viser 95% C.I., og fiolinene viser posterior fordelingen. I panel B angir stiplede grå linjer 95% C.I. 
+
+
+**Tabell 1** Estimert årlig gjennomsnittlig tetthet ($\widehat{D}_{t}$) av voksenfugl samt bestandsindeks ($I_{t}$) for hekkebestanden. Usikkerhet i estimatene er inkludert i form av 95% bayesianske C.I. 
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+
+dd <- as_tibble(out_new$sims.list$Mean_D) %>%
+  gather(Time, Density, V1:V13) %>%
+  mutate(Year=as.integer(str_remove(Time, "V"))+2008) %>%
+  mutate(Year2=as.factor(Year))
+
+d_t <- dd %>% group_by(Year2) %>%
+  summarise(D=mean(Density), 
+            D_nedre=quantile(Density, probs=c(0.0275)),
+            D_øvre=quantile(Density, probs=c(0.975))) %>%
+  ungroup()
+
+
+#############################
+dd <- as_tibble(out_new$sims.list$SD) %>%
+  gather(Time, Density, V1:V13) %>%
+  mutate(Year=as.integer(str_remove(Time, "V"))+2008) %>%
+  mutate(Year2=as.factor(Year))
+
+I_t <- dd %>% group_by(Year2) %>%
+  summarise(I=mean(Density), 
+            I_nedre=quantile(Density, probs=c(0.0275)),
+            I_øvre=quantile(Density, probs=c(0.975))) %>%
+  ungroup()
+
+
+####################################
+
+tab1 <- full_join(d_t, I_t) %>%
+        rename(År=Year2)
+
+ft1 <- flextable::flextable(tab1)
+ft1 <- set_header_labels(ft1, D="D", D_nedre="nedre 95% CI", D_øvre="øvre 95% CI", 
+                          I="I", I_nedre="nedre 95% CI", I_øvre="øvre 95% CI")
+ft1 <- add_header_row(ft1, top=TRUE, values=c("", "Tetthet", "Bestandsindeks"), colwidths = c(1, 3,3))
+ft1 <- colformat_num(ft1, digits=2, j=c("D", "I", "D_nedre", "D_øvre", "I_nedre", "I_øvre"))
+
+ft1
+
+```
+
+
+## 2 Trender i størrelsen på totalbestanden
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+
+load("ModelOutput_noTrend_Total_2009_2021.RData")
+
+
+#########################################################################
+#### Plotting mean density (Dt)
+
+
+dd <- as_tibble(out_new$sims.list$Mean_D) %>%
+  gather(Time, Density, V1:V13) %>%
+  mutate(Year=as.integer(str_remove(Time, "V"))+2008) %>%
+  mutate(Year2=as.factor(Year))
+
+dd_mean <- dd %>% group_by(Year2) %>%
+          summarise(D=mean(Density)) %>%
+    mutate(År=as.numeric(as.character(Year2))) %>%
+          ungroup()
+
+
+####
+p1 <- ggplot(data=dd, aes(x=Year2, y=Density)) + 
+      #see::geom_violinhalf(fill='#E69F00', color="darkred") +
+      geom_violin(fill='#E69F00', color="darkred") +
+      geom_line(data=dd_mean, aes(x=Year2, y=D, group=1), col="Dark orange", lwd=1.5) + 
+      stat_summary(fun.data=mean_sdl, geom="pointrange", color="grey") +
+          scale_fill_brewer(palette="RdBu") + 
+          theme_minimal() +
+          ylim(0, 35) +
+          xlab("") +
+          ylab("Tetthet (ryper pr. km2)") +
+        theme(text = element_text(size=10), 
+              axis.title.x = element_text(vjust=-1)) 
+
+##############################################################################
+#### PLOTTING INDEX (I) - TERMED SD IN JAGS OUTPUT
+
+dd <- as_tibble(out_new$sims.list$SD) %>%
+  gather(Time, Density, V1:V13) %>%
+  mutate(Year=as.integer(str_remove(Time, "V"))+2008) %>%
+  mutate(Year2=as.factor(Year))
+
+dd_mean <- dd %>% group_by(Year2) %>%
+  summarise(I=mean(Density)) %>%
+    mutate(År=as.numeric(as.character(Year2))) %>%
+  ungroup()
+
+m2 <- lm(log(dd_mean$I)~seq(0,12))
+
+
+####
+
+p2 <- ggplot(dd, aes(x=Year,y=Density)) + 
+  geom_hline(yintercept=1, linetype="dashed", 
+             color = "darkred", size=1) +
+  geom_fan(intervals=c(25:95)/100, alpha=0.1) + 
+  geom_interval(intervals=c(0, 0.95), size=1.5, col="grey") + 
+  theme_minimal() + 
+  scale_linetype_manual(values=c("solid", "dotted")) +
+  scale_fill_gradient(low="darkorange", high="grey") +
+  theme(text=element_text(size=10)) +
+  ylab("Bestandsindeks - totalbestand (It)") +
+  geom_point(data=dd_mean, aes(x=År, y=I), col="darkred", size=1.5) +
+  xlab("År") + 
+  #ylim(0, 3) +
+  theme(legend.position ="none", panel.grid.minor =   element_blank()) + guides(fill="none", line="none")+
+  scale_x_continuous(breaks=seq(2009,2021, 1))
+
+
+ 
+
+
+```
+
+
+Også størrelsen på den totale rypebestanden har, basert på våre analyser, økt i perioden 2009-2021 (**Figur 2 a; Tabell 2**). Også her den estimerte endringen større når man benytter gjennomsnittlig tetthet ($\widehat{D}_{t}$) som et mål enn dersom man benytter den relative bestandsindeksen $I_{t}$ (**Figure 2 b; Tabell 2**). 
+
+Årlig vekst i bestandsindeksen $I_{t}$  var lik lik `r round(coef(m2)[2],2)`, tilsvarende en årlig økning på `r (round(exp(coef(m1)[2]),2)-1)*100`%. 
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.height=6, fig.width=6}
+
+plot_grid(
+  p1, 
+  p2,
+  ncol=1,
+  labels="AUTO", 
+  label_size = 15,
+  align="v",
+  hjust=-4.5
+  
+)
+
+
+
+```
+
+**Figur 2.** Modellert bestandsendring i størrelsen på totalbestanden av lirype i Norge i perioden 2009-2021, basert på data samlet inn via linjetakseringsprogrammet. Panel A) viser gjennomsnittlig tetthet av voksenfugl ($\widehat{D}_{t}$) for alle takseringslinjer, mens panel B) viser utviklingen i årlig bestandsindeks ($I_{t}$) for totalbestanden. Grå vertikale linjer i panel A) viser 95% C.I., og fiolinene viser posterior fordelingen. I panel B viser stiplede grå linjer 95% C.I. 
+
+
+**Tabell 2** Estimert årlig gjennomsnittlig totaltetthet ($\widehat{D}_{t}$) av lirype samt årlig bestandsindeks ($I_{t}$) for totalbestanden. Usikkerhet i estimatene er inkludert i form av 95% bayesianske C.I. 
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+ 
+dd <- as_tibble(out_new$sims.list$Mean_D) %>%
+  gather(Time, Density, V1:V13) %>%
+  mutate(Year=as.integer(str_remove(Time, "V"))+2008) %>%
+  mutate(Year2=as.factor(Year))
+
+d_t <- dd %>% group_by(Year2) %>%
+  summarise(D=mean(Density), 
+            D_nedre=quantile(Density, probs=c(0.0275)),
+            D_øvre=quantile(Density, probs=c(0.975))) %>%
+  ungroup()
+
+
+#############################
+dd <- as_tibble(out_new$sims.list$SD) %>%
+  gather(Time, Density, V1:V13) %>%
+  mutate(Year=as.integer(str_remove(Time, "V"))+2008) %>%
+  mutate(Year2=as.factor(Year))
+
+I_t <- dd %>% group_by(Year2) %>%
+  summarise(I=mean(Density), 
+            I_nedre=quantile(Density, probs=c(0.0275)),
+            I_øvre=quantile(Density, probs=c(0.975))) %>%
+  ungroup()
+
+
+####################################
+
+tab2 <- full_join(d_t, I_t) %>%
+        rename(År=Year2)
+
+ft2 <- flextable::flextable(tab2)
+ft2 <- set_header_labels(ft2, D="D", D_nedre="nedre 95% CI", D_øvre="øvre 95% CI", 
+                          I="I", I_nedre="nedre 95% CI", I_øvre="øvre 95% CI")
+ft2 <- add_header_row(ft2, top=TRUE, values=c("", "Tetthet", "Bestandsindeks"), colwidths = c(1, 3,3))
+ft2 <- colformat_num(ft2, digits=2, j=c("D", "I", "D_nedre", "D_øvre", "I_nedre", "I_øvre"))
+
+ft2
+
+
+```
+
+
+
+# Appendix 1
+
+# Appendix 1
+*Regionale trender i rypebestanden - 2009-2021*
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.height=15, fig.width=15}
+
+#############################################################################
+### REGIONALE TRENDER; 
+
+
+#############################
+
+load("ModelOutput_noTrend_Adults_2009_2021.RData")
+
+dd1 <- tibble()
+
+for(i in 1:4){
+  dd <- as_tibble(out_new$sims.list$SDr[,i,]) %>%
+    gather(Time, Density, V1:V13) %>%
+    mutate(Year=as.integer(str_remove(Time, "V"))+2008) %>%
+    mutate(Year2=as.factor(Year))%>%
+    mutate(region=paste(i))
+  dd1 <- bind_rows(dd1, dd)}
+
+dd1 <- dd1 %>% 
+  mutate(region2 = as.factor(region)) %>%
+  mutate(Region=recode(dd1$region, "1"="Nord", "2"="Nord/Midt", "3"="Sør/Vest", "4"="Øst"))
+
+dd_mean <- dd1 %>% group_by(Year2, Region) %>%
+  summarise(I=median(Density)) %>%
+  mutate(År=as.numeric(as.character(Year2)))
+
+rm(out_new)
+rm(dd1)
+rm(dd)
+
+load("ModelOutput_noTrend_Adult_2009_2021_region1.RData")
+load("ModelOutput_noTrend_Adult_2009_2021_region2.RData")
+load("ModelOutput_noTrend_Adult_2009_2021_region3.RData")
+load("ModelOutput_noTrend_Adult_2009_2021_region4.RData")
+
+dd1 <- tibble()
+
+
+dd_1 <- as_tibble(out_reg1$sims.list$SD) %>%
+  gather(Time, Density, V1:V13) %>%
+  mutate(Year=as.integer(str_remove(Time, "V"))+2008) %>%
+  mutate(Year2=as.factor(Year))%>%
+  mutate(region=paste(1))
+
+dd_2 <- as_tibble(out_reg2$sims.list$SD) %>%
+  gather(Time, Density, V1:V13) %>%
+  mutate(Year=as.integer(str_remove(Time, "V"))+2008) %>%
+  mutate(Year2=as.factor(Year))%>%
+  mutate(region=paste(2))
+  
+dd_3 <- as_tibble(out_reg3$sims.list$SD) %>%
+  gather(Time, Density, V1:V13) %>%
+  mutate(Year=as.integer(str_remove(Time, "V"))+2008) %>%
+  mutate(Year2=as.factor(Year))%>%
+  mutate(region=paste(3))
+
+dd_4 <- as_tibble(out_reg4$sims.list$SD) %>%
+  gather(Time, Density, V1:V13) %>%
+  mutate(Year=as.integer(str_remove(Time, "V"))+2008) %>%
+  mutate(Year2=as.factor(Year))%>%
+  mutate(region=paste(4))
+
+dd1 <- bind_rows(dd_1, dd_2, dd_3, dd_4)
+
+dd1 <- dd1 %>% 
+  mutate(region2 = as.factor(region)) %>%
+  mutate(Region=recode(dd1$region, "1"="Nord", "2"="Nord/Midt", "3"="Sør/Vest", "4"="Øst"))
+
+dd_mean2 <- dd1 %>% group_by(Year2, Region) %>%
+  summarise(I=median(Density)) %>%
+  mutate(År=as.numeric(as.character(Year2)))
+
+
+
+
+############################################
+p5 <- ggplot(dd1, aes(x=Year,y=Density)) + 
+  geom_hline(yintercept=1, linetype="dashed", 
+             color = "darkred", size=1) +
+  geom_fan(intervals=c(25:95)/100, alpha=0.1) + 
+  geom_interval(intervals=c(0, 0.95), size=3, col="grey") + 
+  theme_bw() + 
+  scale_linetype_manual(values=c("solid", "dotted")) +
+  scale_fill_gradient(low="darkorange", high="grey") +
+  facet_wrap(~Region) + 
+  theme(text=element_text(size=25)) +
+  ylab("Bestandsindeks - Hekkebestand (It)") +
+  geom_point(data=dd_mean2, aes(x=År, y=I), col="darkred", size=3) +
+  xlab("År") + 
+  geom_line(data=dd_mean, aes(x=År, y=I), col="dark blue", size=3, linetype="twodash") +
+  #ylim(0, 3) +
+  theme(legend.position ="none") + guides(fill="none", line="none")
+
+##################################################
+p5
+
+
+
+
+
+```
+
+**Figur S1a** Estimert årlig bestandsindeks ($I_{t}$) for hekkebestanden av lirype på regionalt nivå for perioden 2009-2021. For oppdeling av regioner, se Metoder. Stiplede grå linjer markerer 95% C.I., mens orange felt markerer omtrent 50% C.I. Resultater er vist resultater for separate modeller for de enkelte regioner, men blå stiplet linje viser regionale prediksjoner for en samlet nasjonal modell.   
