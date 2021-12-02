@@ -1,0 +1,22 @@
+Fylke_ny;Region_ØT;Region_ØT_nr;Fylke_gammel;Fylke_gammel_nr;Fylke_ny_nr;Justert_region_ØT;Juster_region_ØT_nr;Region_ryperapport_nr;Region_ryperapport;Fylkesnr
+Agder;S;4;Vest-Agder;10;42;SW;4;3;Vest;10
+Agder;S;4;Aust-Agder;9;42;SW;4;3;Vest;9
+Innlandet;E;3;Hedmark;4;34;E;3;4;Øst;4
+Innlandet;E;3;Oppland;5;34;E;3;4;Øst;5
+Møre og Romsdal;C;2;Møre og Romsdal;15;15;C;2;2;Midt;15
+Nordland;N;1;Nordland;18;18;N;1;2;Midt;18
+Oslo;E;3;Oslo;3;3;E;3;5;Ingen;3
+Rogaland;W;5;Rogaland;11;11;SW;4;3;Vest;11
+Vestfold og Telemark;E;3;Vestfold;7;38;E;3;5;Ingen;7
+Vestfold og Telemark;E;3;Telemark;8;38;E;3;4;Øst;8
+Troms og Finnmark;N;1;Troms;19;54;N;1;1;Nord;19
+Troms og Finnmark;N;1;Finnmark;20;54;N;1;1;Nord;20
+Trøndelag;C;2;Nord-Trøndelag;17;50;C;2;2;Midt;17
+Trøndelag;C;2;Sør-Trøndelag;16;50;C;2;2;Midt;16
+Vestland;W;5;Hordaland;12;46;SW;4;3;Vest;12
+Vestland;W;5;Sogn og Fjordane;14;46;SW;4;3;Vest;14
+Viken;E;3;Østfold;1;30;E;3;5;Ingen;1
+Viken;E;3;Akershus;2;30;E;3;5;Ingen;2
+Viken;E;3;Buskerud;6;30;E;3;4;Øst;6
+Svalbard;No;0;Svalbard;21;21;No;0;6;Utenfor;21
+Jan-Mayen;No;0;Jan-Mayen;22;22;No;0;6;Utenfor;22
