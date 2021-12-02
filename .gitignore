@@ -2,7 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
-
 /data
 /Reports
 NorwegianPtarmigan_TrendANalysis.Rproj
@@ -13,3 +12,8 @@ NorwegianPtarmigan_TrendANalysis.Rproj
 /Resultater_publish.rmd
 /Figures
 /Resultater_publish.docx
+ModelOutput_noTrend_Total_2009_2021_EC3.RData
+2_PrepareData_RunningModel_Total_EC.R
+Progress_Plan.rmd
+Model_results.rds
+Referansetilstand.docx
